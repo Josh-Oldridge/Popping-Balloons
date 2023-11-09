@@ -8,7 +8,8 @@ layout(location = 1) in vec3 vertexColor;
 
 out vec3 fragmentColor;
 
+uniform mat4 uProjectionMatrix;
 void main() {
-    gl_Position = vec4(vertexPosition_modelspace, 1.0);
+    gl_Position = uProjectionMatrix * vec4(vertexPosition_modelspace, 1.0);
     fragmentColor = vertexColor;
 }

@@ -1,7 +1,7 @@
 #version 330 core
+in vec3 fragmentColor;
 out vec4 color;
 
 void main() {
-    // Output color = red
-    color = vec4(1,0,0,1); // RGBA, A=1 for full opacity
+    color = vec4(fragmentColor, 1.0); // Use the color passed from the vertex shader
 }
