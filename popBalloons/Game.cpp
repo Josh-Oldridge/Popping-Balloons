@@ -29,6 +29,7 @@ void Game::run() {
 
     setupScene();
 
+    registerClickCallback();
     // Main game loop
     while (!glfwWindowShouldClose(window)) {
         double currentTime = glfwGetTime();
@@ -222,6 +223,54 @@ void Game::renderScene() {
     // If there are other things to render (e.g., UI, background), do it here or delegate as well
 
     // Swap buffers if using double buffering, handled in Game::run method
+}
+
+void Game::registerClickCallback() {
+    glfwSetMouseButtonCallback(window, [](GLFWwindow* win, int button, int action, int mods) {
+        if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+            double xpos, ypos;
+            glfwGetCursorPos(win, &xpos, &ypos);
+
+            Game* game = static_cast<Game*>(glfwGetWindowUserPointer(win));
+            if (game) {
+                game->handleClick(static_cast<float>(xpos), static_cast<float>(ypos));
+            }
+        }
+    });
+}
+
+void Game::handleClick(float xpos, float ypos) {
+    std::cout << "Click received at (" << xpos << ", " << ypos << ")" << std::endl;
+    
+    // Convert from screen space to normalized device coordinates (NDC)
+    float ndcX = (xpos / fbWidth) * 2.0f - 1.0f;
+    float ndcY = 1.0f - (ypos / fbHeight) * 2.0f;
+    
+    for (size_t i = 0; i < balloons.size(); ++i) {
+        Balloon& balloon = balloons[i];
+        glm::vec3 position = balloon.getPosition();
+        float horizontal_radius = balloon.getSize() * 0.5f; // Horizontal radius of the ellipse
+        float vertical_radius = balloon.getSize(); // Vertical radius of the ellipse
+
+        // Debug balloon position and size
+        std::cout << "Balloon " << i << " position=(" << position.x << ", " << position.y
+                  << "), size=" << balloon.getSize() << std::endl;
+    
+        // Adjusted collision detection for elliptical balloons
+        float dx = (ndcX - position.x) / horizontal_radius;
+        float dy = (ndcY - position.y) / vertical_radius;
+        if (dx * dx + dy * dy <= 1.0f) {
+            // Debug message to indicate a pop should occur
+            std::cout << "Balloon " << i << " popped!" << std::endl;
+
+            // Remove the balloon from the list (simple handling)
+            balloons.erase(balloons.begin() + i);
+
+            // Optionally, you can do more (e.g., play sound, animation, etc.)
+            
+            break; // If you want to only pop one balloon per click
+        }
+    }
 }
 
 void Game::endGame() {

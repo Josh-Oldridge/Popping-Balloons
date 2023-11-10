@@ -35,6 +35,8 @@ private:
     void setupScene();
     void updateScene(float deltaTime);
     void renderScene();
+    void registerClickCallback(); // Add this line
+    void handleClick(float xpos, float ypos); // And this line
     void endGame();
 };
 
