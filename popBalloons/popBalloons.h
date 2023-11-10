@@ -54,6 +54,7 @@ public:
     void popBalloon(int balloonIndex);
     void endGame();
     void updateScene(float deltaTime); // Add deltaTime parameter
+    static void window_resize_callback(GLFWwindow* window, int width, int height);
 
 
 private:
@@ -78,7 +79,8 @@ private:
     // Add your variables for the window, shaders, and buffers here
     GLFWwindow* window;
     GLuint programID;
-    int fbWidth, fbHeight;
+    int fbWidth;
+    int fbHeight;
     // More variables like buffers, array objects, etc.
 
     // Add any other private member functions or variables needed

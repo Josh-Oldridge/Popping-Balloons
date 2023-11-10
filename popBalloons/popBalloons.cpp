@@ -19,6 +19,7 @@ using namespace glm;
 #include <algorithm>
 
 #include <glm/gtc/matrix_transform.hpp> // for glm::ortho
+#include <glm/gtc/type_ptr.hpp>
 
 
 // Define a structure for Vertex data
@@ -58,6 +59,22 @@ void PopBalloons::popBalloon(int balloonIndex) {
     // Remove balloon from the vector
     balloons.erase(balloons.begin() + balloonIndex);
 }
+
+void PopBalloons::window_resize_callback(GLFWwindow* window, int width, int height) {
+    glViewport(0, 0, width, height);
+    
+    PopBalloons* pb = static_cast<PopBalloons*>(glfwGetWindowUserPointer(window));
+    pb->fbWidth = width;
+    pb->fbHeight = height;
+    
+    float aspectRatio = static_cast<float>(pb->fbWidth) / static_cast<float>(pb->fbHeight);
+    glm::mat4 projection = glm::ortho(-aspectRatio, aspectRatio, -1.0f, 1.0f);
+
+    GLuint matrixID = glGetUniformLocation(pb->programID, "uProjectionMatrix");
+    glUseProgram(pb->programID);
+    glUniformMatrix4fv(matrixID, 1, GL_FALSE, glm::value_ptr(projection));
+}
+
 
 void PopBalloons::Run() {
     // Initialize GLFW, GLEW, create window, etc.
@@ -125,9 +142,18 @@ bool PopBalloons::initializeWindow() {
     // Make the window's context current
     glfwMakeContextCurrent(window);
 
+    // Set this window instance as the user pointer for reference in the static resize callback
+    glfwSetWindowUserPointer(window, this);
+
+    // Use a lambda function to convert the static function callback to the member function callback
+    glfwSetFramebufferSizeCallback(window, [](GLFWwindow* win, int width, int height) {
+        // cast the user pointer back to PopBalloons and call the member resize callback
+        static_cast<PopBalloons*>(glfwGetWindowUserPointer(win))->window_resize_callback(win, width, height);
+    });
+
+    // Set initial viewport size
     glfwGetFramebufferSize(window, &fbWidth, &fbHeight);
     glViewport(0, 0, fbWidth, fbHeight);
-
 
     return true;
 }
@@ -140,8 +166,7 @@ bool PopBalloons::initializeGLEW() {
         return false;
     }
 
-    // Define the viewport dimensions
-    glViewport(0, 0, 640, 480);
+    
 
     // Enable depth test
     glEnable(GL_DEPTH_TEST);
@@ -158,7 +183,7 @@ void PopBalloons::setupScene() {
     // Get the framebuffer size
     int screenWidth, screenHeight;
     glfwGetFramebufferSize(window, &screenWidth, &screenHeight);
-    float aspectRatio = static_cast<float>(screenWidth) / static_cast<float>(screenHeight);
+    float aspectRatio = static_cast<float>(fbWidth) / static_cast<float>(fbHeight);
     glm::mat4 projection = glm::ortho(-aspectRatio, aspectRatio, -1.0f, 1.0f);
 
     // Pass the orthographic projection matrix to the shader
@@ -209,7 +234,7 @@ void PopBalloons::setupScene() {
 }
 
 void Balloon::update(float deltaTime) {
-    position.y += 5 * deltaTime; // Adjust `movementSpeed` based on how fast you want balloons to move
+    position.y += 1 * deltaTime; // Adjust `movementSpeed` based on how fast you want balloons to move
 }
 
 void PopBalloons::updateScene(float deltaTime) {
