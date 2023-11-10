@@ -55,8 +55,14 @@ add_definitions(
 
 # PopBalloons executable
 add_executable(popBalloons
-	popBalloons/popBalloons.cpp
-	popBalloons/popBalloons.h
+	popBalloons/Renderer.cpp
+	popBalloons/Renderer.h
+	popBalloons/Game.cpp
+	popBalloons/Game.h
+	popBalloons/Balloon.cpp
+	popBalloons/Balloon.h
+	popBalloons/main.cpp
+	popBalloons/Vertex.h
 	common/shader.cpp
 )
 target_link_libraries(popBalloons
