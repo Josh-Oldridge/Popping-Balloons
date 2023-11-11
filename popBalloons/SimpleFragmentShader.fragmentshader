@@ -1,7 +1,7 @@
 #version 330 core
-in vec3 fragmentColor;
+in vec4 fragmentColor;
 out vec4 color;
 
 void main() {
-    color = vec4(fragmentColor, 1.0); // Use the color passed from the vertex shader
+    color = fragmentColor; // Use the color passed from the vertex shader
 }

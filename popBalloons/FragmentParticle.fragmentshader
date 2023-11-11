@@ -1,0 +1,9 @@
+#version 330 core
+in vec4 fragmentColor;
+out vec4 color;
+
+void main() {
+    // Implement any special effect for the particle, like fade out.
+    float alpha = fragmentColor.a; // Use the alpha component to handle transparency
+    color = vec4(fragmentColor.rgb, alpha); // Output final color with possible fade-out
+}

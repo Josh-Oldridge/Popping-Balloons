@@ -1,7 +1,9 @@
 #include "Game.h"
+#include "Fragment.h"
 #include <iostream>
 #include <algorithm>
 #include <glm/gtc/matrix_transform.hpp> 
+#include <glm/gtc/random.hpp>
 
 Game::Game()
     : score(0),
@@ -52,9 +54,28 @@ void Game::update(float deltaTime) {
         balloon.update(deltaTime);
     }
 
+    // Update the fragments
+    for (auto it = fragments.begin(); it != fragments.end();) {
+        it->position += it->velocity * deltaTime;  // Update position based on velocity
+        it->velocity += glm::vec3(0.0f, -9.8f * deltaTime, 0.0f); // Apply gravity, tune gravity to your game
+
+        // Fade out the fragment over time or shrink it
+        it->color.a = glm::max(it->color.a - (deltaTime / it->lifetime), 0.0f);
+        // Reduce the fragment's lifetime
+        it->lifetime -= deltaTime;
+
+        // Remove fragment if its lifetime is over (or if it's invisible)
+        if (it->lifetime <= 0.0f) {
+            it = fragments.erase(it);
+        } else {
+            ++it;
+        }
+    }
+
     // Check if any balloons are off-screen and remove them
     for (size_t i = 0; i < balloons.size();) {
         if (balloons[i].isOffScreen()) {
+            // Consider adding score penalty or life penalty here, only if needed
             balloons.erase(balloons.begin() + i);
             --lives;
             // Game over logic
@@ -74,6 +95,7 @@ void Game::update(float deltaTime) {
         nextBalloonTime = currentTime + generateRandomTime(); // Set the time for creating the next balloon
     }
 }
+
 void Game::popBalloon(int balloonIndex) {
     if (balloonIndex < 0 || balloonIndex >= static_cast<int>(balloons.size())) {
         return; // Index out of range
@@ -81,20 +103,35 @@ void Game::popBalloon(int balloonIndex) {
 
     Balloon& balloon = balloons[balloonIndex];
     // Calculate score based on size (smaller balloon gives higher score)
-    score += static_cast<int>((0.15f - balloon.getSize()) * 100.0f);
-    // Remove balloon from the vector
+    score += 100;
+
+    // Generate the fragments for the explosion effect
+    int numFragments = 10; // This can be any number that you feel looks good
+    for (int i = 0; i < numFragments; ++i) {
+        glm::vec3 position = balloon.getPosition(); // Start the fragment at the balloon's position
+        glm::vec3 velocity = glm::ballRand(1.0f);   // Randomize velocity direction
+        glm::vec4 color = glm::vec4(balloon.getColor(), 1.0f); // Assuming Balloon::getColor() returns a glm::vec3 and specifying alpha
+        float size = 1.0f;      // Size of the fragment (use the appropriate size for your fragment)
+        float lifetime = 1.0f;  // Set how long the fragment should be alive
+
+        Fragment frag(position, velocity, color, size, lifetime); // Using the Fragment constructor with parameters
+        fragments.push_back(frag);
+    }
+
     balloons.erase(balloons.begin() + balloonIndex);
 }
+
 
 void Game::createBalloon() {
     // Randomize position, color, and size within certain bounds
     std::uniform_real_distribution<float> dis(-1.0, 1.0); // For x-coordinate
     std::uniform_real_distribution<float> disColor(0.0, 1.0); // For color
-    std::uniform_real_distribution<float> disSize(0.05f, 0.15f); // For size
+    //std::uniform_real_distribution<float> disSize(0.05f, 0.15f); // For size
 
     glm::vec3 position(dis(gen), -1.0f, 0.0f); // Start from the bottom of the screen
     glm::vec3 color(disColor(gen), disColor(gen), disColor(gen)); // Random color for each balloon
-    float size = disSize(gen); // Random size for each balloon
+    //float size = disSize(gen); // Random size for each balloon
+    float size = 0.2f;
 
     balloons.push_back(Balloon(position, size, color));
 }
@@ -150,12 +187,28 @@ bool Game::initializeWindow() {
 
     // Set the frame buffer resize callback
     glfwSetFramebufferSizeCallback(window, [](GLFWwindow* win, int width, int height) {
-        Game* game = static_cast<Game*>(glfwGetWindowUserPointer(win));
-        game->renderer.resize(width, height);
-    });
+        // If the window is minimized, GLFW may set width and height to zero.
+        if (width == 0 || height == 0) {
+            // This can happen if the window is minimized. Do not update sizes to zero.
+            std::cout << "Resize was called with a zero width or height, ignoring." << std::endl;
+            return;
+        }
 
+        Game* game = static_cast<Game*>(glfwGetWindowUserPointer(win));
+        if (game) {
+            // Update framebuffer size stored in the Game class
+            game->fbWidth = width;
+            game->fbHeight = height;
+
+            // Call the Renderer class's resize method to update viewport and projection
+            game->renderer.resize(width, height);
+
+            std::cout << "Framebuffer size updated in game class: " << width << "x" << height << std::endl;
+        }
+    });
     // Get the framebuffer size
     glfwGetFramebufferSize(window, &fbWidth, &fbHeight);
+    std::cout << "Framebuffer size after window creation: " << fbWidth << "x" << fbHeight << std::endl;
 
     return true;
 }
@@ -218,7 +271,7 @@ void Game::renderScene() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Delegate the rendering of the balloons to the Renderer class
-    renderer.render(balloons);
+    renderer.render(balloons, fragments);
 
     // If there are other things to render (e.g., UI, background), do it here or delegate as well
 
@@ -243,36 +296,39 @@ void Game::handleClick(float xpos, float ypos) {
     std::cout << "Click received at (" << xpos << ", " << ypos << ")" << std::endl;
     
     // Convert from screen space to normalized device coordinates (NDC)
-    float ndcX = (xpos / fbWidth) * 2.0f - 1.0f;
-    float ndcY = 1.0f - (ypos / fbHeight) * 2.0f;
+    float aspectRatio = static_cast<float>(fbWidth) / static_cast<float>(fbHeight);
+    float ndcX = (xpos / static_cast<float>(fbWidth)) * 2.0f - 1.0f;
+    float ndcY = (ypos / static_cast<float>(fbHeight)) * -2.0f + 1.0f;
+
+    std::cout << "Converted to NDC at (" << ndcX << ", " << ndcY << ")" << std::endl;
     
     for (size_t i = 0; i < balloons.size(); ++i) {
-        Balloon& balloon = balloons[i];
-        glm::vec3 position = balloon.getPosition();
-        float horizontal_radius = balloon.getSize() * 0.5f; // Horizontal radius of the ellipse
-        float vertical_radius = balloon.getSize(); // Vertical radius of the ellipse
-
-        // Debug balloon position and size
-        std::cout << "Balloon " << i << " position=(" << position.x << ", " << position.y
-                  << "), size=" << balloon.getSize() << std::endl;
+    Balloon& balloon = balloons[i];
+    glm::vec3 position = balloon.getPosition();
     
-        // Adjusted collision detection for elliptical balloons
-        float dx = (ndcX - position.x) / horizontal_radius;
-        float dy = (ndcY - position.y) / vertical_radius;
-        if (dx * dx + dy * dy <= 1.0f) {
-            // Debug message to indicate a pop should occur
+    float radius = balloon.getSize();
+    
+    float dx = (ndcX - position.x) / aspectRatio; // <-- change this line
+    float dy = (ndcY - position.y);
+    float distanceSquared = dx * dx + dy * dy;
+    /*
+    float dx = (ndcX - position.x);
+    float dy = (ndcY - position.y);
+    float distanceSquared = dx * dx + dy * dy;*/
+
+    
+
+    std::cout << "Balloon " << i << " position=(" << position.x << ", " << position.y
+                  << "), size=" << balloon.getSize() << ", radius=" << radius
+                  << ", distanceSquared=" << distanceSquared << std::endl;
+
+        if (distanceSquared <= (radius * radius) * 1.1f) { // the factor of 1.1 is arbitrary, you can adjust it as necessary
             std::cout << "Balloon " << i << " popped!" << std::endl;
-
-            // Remove the balloon from the list (simple handling)
-            balloons.erase(balloons.begin() + i);
-
-            // Optionally, you can do more (e.g., play sound, animation, etc.)
-            
-            break; // If you want to only pop one balloon per click
+            popBalloon(i);
+            break;
         }
     }
 }
-
 void Game::endGame() {
     // Output final score or trigger game over screen/behavior
     std::cout << "Game Over! Your score: " << score << std::endl;

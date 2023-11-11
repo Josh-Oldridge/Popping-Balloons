@@ -3,8 +3,10 @@
 
 #include "Renderer.h"
 #include "Balloon.h"
+#include "Fragment.h"
 #include <vector>
 #include <random>
+
 
 class Game {
 public:
@@ -21,6 +23,7 @@ private:
     Renderer renderer; // Assumes initialization in constructor or init method
     GLFWwindow* window;
     std::vector<Balloon> balloons;
+    std::vector<Fragment> fragments;
     int score;
     int lives;
     double lastTime;

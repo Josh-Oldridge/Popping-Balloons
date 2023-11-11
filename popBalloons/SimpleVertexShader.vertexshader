@@ -1,15 +1,12 @@
-// SimpleVertexShader.vertexshader
 #version 330 core
-
-// Input vertex data, different for all executions of this shader
-
 layout(location = 0) in vec3 vertexPosition_modelspace;
-layout(location = 1) in vec3 vertexColor;
+layout(location = 1) in vec4 vertexColor; // Assuming you have color data per vertex now
 
-out vec3 fragmentColor;
+uniform mat4 MVP; // Model-View-Projection matrix if needed, this can be a uniform
 
-uniform mat4 uProjectionMatrix;
+out vec4 fragmentColor;
+
 void main() {
-    gl_Position = uProjectionMatrix * vec4(vertexPosition_modelspace, 1.0);
+    gl_Position = MVP * vec4(vertexPosition_modelspace, 1.0); 
     fragmentColor = vertexColor;
 }
