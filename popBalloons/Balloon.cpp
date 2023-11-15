@@ -1,16 +1,20 @@
 #include "Balloon.h"
+#include <iostream>
 
 // Constructor implementation for the Balloon class
-Balloon::Balloon(const glm::vec3& initPosition, float initSize, const glm::vec3& initColor)
-    : position(initPosition), size(initSize), color(initColor) {}
+Balloon::Balloon(const glm::vec3& position, float size, const glm::vec3& color)
+    : position(position), size(size), color(color), velocity(0.0f, 0.05f, 0.0f), speed(1.0f) {
+    // Reduced the y-component of velocity to 0.05f which should be slower
+}
 
-// Update the balloon position by moving it upwards
 void Balloon::update(float deltaTime) {
-    // Adjust `movementSpeed` based on how fast you want balloons to move
-    const float movementSpeed = 0.5f; // You can decide on a proper speed
-    position.y += movementSpeed * deltaTime;
+    std::cout << "Updating balloon with deltaTime: " << deltaTime <<
+                 ", speed: " << speed <<
+                 ", velocity: (" << velocity.x << ", " << velocity.y << ")" << std::endl;
+                 
+    position += velocity * deltaTime * speed; // Update the position using velocity and speed
 
-    // Additional logic can be added here if needed
+    // Additional logic...
 }
 
 // Check whether the balloon is off the screen (i.e., past the top of the window)
@@ -30,4 +34,19 @@ glm::vec3 Balloon::getColor() const {
 
 float Balloon::getSize() const {
     return size;
+}
+void Balloon::setVelocity(const glm::vec3& newVelocity) {
+    velocity = newVelocity;
+}
+
+glm::vec3 Balloon::getVelocity() const {
+    return velocity;
+}
+
+void Balloon::setSpeed(float newSpeed) {
+    speed = newSpeed;
+}
+
+float Balloon::getSpeed() const {
+    return speed;
 }

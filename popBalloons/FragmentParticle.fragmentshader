@@ -1,9 +1,15 @@
 #version 330 core
 in vec4 fragmentColor;
+in float fragmentLifetime; // Receive remaining lifetime from vertex shader
+
 out vec4 color;
 
 void main() {
-    // Implement any special effect for the particle, like fade out.
-    float alpha = fragmentColor.a; // Use the alpha component to handle transparency
-    color = vec4(fragmentColor.rgb, alpha); // Output final color with possible fade-out
+    // Fade effect based on remaining lifetime
+    // Here we assume the full lifetime of a particle is 1 second for simplicity.
+    // Adjust this according to your particle system's settings.
+    float alpha = clamp(fragmentLifetime, 0.0, 1.0);
+
+    // Apply fade-out effect to color's alpha
+    color = vec4(fragmentColor.rgb, alpha * fragmentColor.a);
 }

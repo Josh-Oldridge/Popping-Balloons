@@ -153,8 +153,3 @@ std::vector<Vertex> Renderer::createBalloonVertices(const Balloon& balloon) {
 
     return vertices;
 }
-
-
-
-
-

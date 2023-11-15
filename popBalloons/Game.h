@@ -31,7 +31,7 @@ private:
     std::mt19937 gen;
     int fbWidth, fbHeight;
     
-    float generateRandomTime();
+    
     bool initializeGLFW();
     bool initializeWindow();
     bool initializeGLEW();
@@ -41,6 +41,9 @@ private:
     void registerClickCallback(); // Add this line
     void handleClick(float xpos, float ypos); // And this line
     void endGame();
+    float balloonSpeedMultiplier; // Add this to your Game class
+    float balloonSpawnInterval; // Time between balloon spawns
+    float balloonSpawnSpeedIncrease; // Amount to decrease spawn
 };
 
 #endif // GAME_H

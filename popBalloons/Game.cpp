@@ -9,10 +9,13 @@ Game::Game()
     : score(0),
       lives(3),
       gen(std::random_device{}()),
-      window(nullptr) // Initialize other variables as needed
+      window(nullptr), // Initialize other variables as needed
+      balloonSpeedMultiplier(1.0f),
+      balloonSpawnInterval(2.0f), // Initial spawn interval of 2 seconds
+      balloonSpawnSpeedIncrease(0.1f)
 {
     lastTime = glfwGetTime(); // Initialize lastTime to current time
-    nextBalloonTime = lastTime + generateRandomTime(); // Set initial timer using lastTime
+    nextBalloonTime = lastTime + balloonSpawnInterval; // Set initial timer using lastTime
     //... Other initialization code as needed ...
 
     // Initialize the renderer here if needed
@@ -54,6 +57,7 @@ void Game::update(float deltaTime) {
         balloon.update(deltaTime);
     }
 
+
     // Update the fragments
     for (auto it = fragments.begin(); it != fragments.end();) {
         it->position += it->velocity * deltaTime;  // Update position based on velocity
@@ -75,9 +79,12 @@ void Game::update(float deltaTime) {
     // Check if any balloons are off-screen and remove them
     for (size_t i = 0; i < balloons.size();) {
         if (balloons[i].isOffScreen()) {
-            // Consider adding score penalty or life penalty here, only if needed
             balloons.erase(balloons.begin() + i);
             --lives;
+            
+            // Reset balloon speed multiplier if a life is lost
+            balloonSpeedMultiplier = 1.0f;
+            
             // Game over logic
             if (lives <= 0) {
                 endGame();
@@ -91,8 +98,8 @@ void Game::update(float deltaTime) {
     // Check if it's time to create a new balloon
     float currentTime = glfwGetTime();
     if (currentTime >= nextBalloonTime) {
-        createBalloon(); // Create a new balloon at random position and color
-        nextBalloonTime = currentTime + generateRandomTime(); // Set the time for creating the next balloon
+        createBalloon(); // Create a new balloon
+        nextBalloonTime = currentTime + balloonSpawnInterval; // Set the time for creating the next balloon
     }
 }
 
@@ -102,8 +109,23 @@ void Game::popBalloon(int balloonIndex) {
     }
 
     Balloon& balloon = balloons[balloonIndex];
-    // Calculate score based on size (smaller balloon gives higher score)
-    score += 100;
+    // Increase the balloon speed multiplier
+    // Increase the balloon speed multiplier by a smaller amount
+    balloonSpeedMultiplier += 0.05f; // Further reduced increment
+
+    // Update the speed of all remaining balloons
+    for (auto& balloon : balloons) {
+        balloon.setSpeed(balloonSpeedMultiplier);
+    }
+
+    // Increase the score based on the speed multiplier. Score increases as the balloons get faster
+    // You might want to tune the below score calculation as per your game's scoring rules
+    score += static_cast<int>(100 * balloonSpeedMultiplier);
+
+    balloonSpawnInterval = std::max(balloonSpawnInterval - balloonSpawnSpeedIncrease, 0.5f); // Prevent it from going below 0.5 seconds
+
+    // Immediate application of the new balloon spawn interval
+    nextBalloonTime = glfwGetTime() + balloonSpawnInterval;
 
     // Generate the fragments for the explosion effect
     int numFragments = 10; // This can be any number that you feel looks good
@@ -111,7 +133,7 @@ void Game::popBalloon(int balloonIndex) {
         glm::vec3 position = balloon.getPosition(); // Start the fragment at the balloon's position
         glm::vec3 velocity = glm::ballRand(1.0f);   // Randomize velocity direction
         glm::vec4 color = glm::vec4(balloon.getColor(), 1.0f); // Assuming Balloon::getColor() returns a glm::vec3 and specifying alpha
-        float size = 1.0f;      // Size of the fragment (use the appropriate size for your fragment)
+        float size = 50.0f;      // Size of the fragment (use the appropriate size for your fragment)
         float lifetime = 1.0f;  // Set how long the fragment should be alive
 
         Fragment frag(position, velocity, color, size, lifetime); // Using the Fragment constructor with parameters
@@ -126,14 +148,21 @@ void Game::createBalloon() {
     // Randomize position, color, and size within certain bounds
     std::uniform_real_distribution<float> dis(-1.0, 1.0); // For x-coordinate
     std::uniform_real_distribution<float> disColor(0.0, 1.0); // For color
-    //std::uniform_real_distribution<float> disSize(0.05f, 0.15f); // For size
 
     glm::vec3 position(dis(gen), -1.0f, 0.0f); // Start from the bottom of the screen
     glm::vec3 color(disColor(gen), disColor(gen), disColor(gen)); // Random color for each balloon
-    //float size = disSize(gen); // Random size for each balloon
-    float size = 0.2f;
+    float size = 0.2f; // You might already have code to set this differently
 
-    balloons.push_back(Balloon(position, size, color));
+    // Create the balloon with an initial speed, then apply the speed multiplier
+    Balloon newBalloon(position, size, color);
+    newBalloon.setSpeed(balloonSpeedMultiplier); // Set balloon's speed multiplier
+
+    // Note: This snippet assumes you're giving all balloons a 
+    // base vertical velocity upwards, and the speed variable is
+    // merely a multiplier to adjust the velocity
+    newBalloon.setVelocity(glm::vec3(0.0f, 0.4f, 0.0f)); // Base 
+
+    balloons.push_back(newBalloon);
 }
 
 void Game::cleanup() {
@@ -151,10 +180,7 @@ void Game::cleanup() {
 
 // Add other private member function implementations below
 
-float Game::generateRandomTime() {
-    std::uniform_real_distribution<float> disTime(2.0f, 5.0f); // Between 2 and 5 seconds
-    return disTime(gen);
-}
+
 
 bool Game::initializeGLFW() {
     // Initialize GLFW
@@ -181,6 +207,9 @@ bool Game::initializeWindow() {
 
     // Make the window's context current
     glfwMakeContextCurrent(window);
+
+    // Enable V-Sync
+    glfwSwapInterval(1); // Add this line here
 
     // Set this object to be the user pointer
     glfwSetWindowUserPointer(window, this);
@@ -261,7 +290,7 @@ void Game::updateScene(float deltaTime) {
     double currentTime = glfwGetTime();
     if (currentTime >= nextBalloonTime) {
         createBalloon(); // Create a new balloon at random position and color
-        nextBalloonTime = currentTime + generateRandomTime(); // Set the time for creating the next balloon
+        nextBalloonTime = currentTime + balloonSpawnInterval; // Set the time for creating the next balloon
     }
 }
 
@@ -302,27 +331,24 @@ void Game::handleClick(float xpos, float ypos) {
 
     std::cout << "Converted to NDC at (" << ndcX << ", " << ndcY << ")" << std::endl;
     
+    float hitboxScale = 1.5f; // Increase this factor to enlarge the hitbox (e.g., 1.5 for 50% larger)
+
     for (size_t i = 0; i < balloons.size(); ++i) {
-    Balloon& balloon = balloons[i];
-    glm::vec3 position = balloon.getPosition();
-    
-    float radius = balloon.getSize();
-    
-    float dx = (ndcX - position.x) / aspectRatio; // <-- change this line
-    float dy = (ndcY - position.y);
-    float distanceSquared = dx * dx + dy * dy;
-    /*
-    float dx = (ndcX - position.x);
-    float dy = (ndcY - position.y);
-    float distanceSquared = dx * dx + dy * dy;*/
+        Balloon& balloon = balloons[i];
+        glm::vec3 position = balloon.getPosition();
 
-    
+        // Get the actual size of the balloon
+        float actualRadius = balloon.getSize();
 
-    std::cout << "Balloon " << i << " position=(" << position.x << ", " << position.y
-                  << "), size=" << balloon.getSize() << ", radius=" << radius
-                  << ", distanceSquared=" << distanceSquared << std::endl;
+        // Apply the hitbox scale to calculate the effective radius for the hitbox
+        float hitboxRadius = actualRadius * hitboxScale;
 
-        if (distanceSquared <= (radius * radius) * 1.1f) { // the factor of 1.1 is arbitrary, you can adjust it as necessary
+        float dx = (ndcX - position.x) / aspectRatio;
+        float dy = (ndcY - position.y);
+        float distanceSquared = dx * dx + dy * dy;
+
+        // Check if the click is within the hitbox radius (squared)
+        if (distanceSquared <= (hitboxRadius * hitboxRadius)) {
             std::cout << "Balloon " << i << " popped!" << std::endl;
             popBalloon(i);
             break;

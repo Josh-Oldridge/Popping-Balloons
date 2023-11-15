@@ -13,8 +13,17 @@ public:
     glm::vec3 getColor() const;
     float getSize() const;
 
+    // Newly added methods and member variables
+    void setVelocity(const glm::vec3& newVelocity);
+    glm::vec3 getVelocity() const;
+
+    void setSpeed(float newSpeed);
+    float getSpeed() const;
+
 private:
     glm::vec3 position;
+    glm::vec3 velocity; // Balloon's velocity
+    float speed; // Balloon's speed multiplier
     float size;
     glm::vec3 color;
 };
