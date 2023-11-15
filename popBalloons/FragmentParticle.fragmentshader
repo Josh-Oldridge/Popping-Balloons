@@ -6,8 +6,7 @@ out vec4 color;
 
 void main() {
     // Fade effect based on remaining lifetime
-    // Here we assume the full lifetime of a particle is 1 second for simplicity.
-    // Adjust this according to your particle system's settings.
+   
     float alpha = clamp(fragmentLifetime, 0.0, 1.0);
 
     // Apply fade-out effect to color's alpha

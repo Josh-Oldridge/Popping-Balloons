@@ -15,10 +15,10 @@ struct Fragment {
     Fragment(const glm::vec3& pos, const glm::vec3& vel, const glm::vec4& col, float s, float life)
         : position(pos), velocity(vel), color(col), size(s), lifetime(life) {}
     
-    // Add an update method if you want to update fragment properties over time
+    
     void update(float deltaTime) {
         position += velocity * deltaTime;
-        // Reduce lifetime or update other properties
+        
         lifetime -= deltaTime;
     }
 };

@@ -13,7 +13,7 @@ public:
     glm::vec3 getColor() const;
     float getSize() const;
 
-    // Newly added methods and member variables
+
     void setVelocity(const glm::vec3& newVelocity);
     glm::vec3 getVelocity() const;
 
@@ -28,4 +28,4 @@ private:
     glm::vec3 color;
 };
 
-#endif // BALLOON_H
+#endif 

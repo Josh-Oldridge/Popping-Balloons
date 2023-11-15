@@ -7,11 +7,11 @@
 
 
 Renderer::Renderer() {
-    // Constructor will initialize OpenGL objects
+    
 }
 
 Renderer::~Renderer() {
-    cleanup(); // Cleanup will deallocate OpenGL objects
+    cleanup(); 
 }
 
 void Renderer::initialize() {
@@ -26,7 +26,7 @@ void Renderer::initialize() {
     glBindBuffer(GL_ARRAY_BUFFER, balloonVBO);
 
     // Define the vertex data layout for balloons
-    glEnableVertexAttribArray(0); // for vertex positions
+    glEnableVertexAttribArray(0); 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
 
     glEnableVertexAttribArray(1); // for vertex colors
@@ -54,14 +54,14 @@ void Renderer::initialize() {
 void Renderer::setProjectionMatrix(const glm::mat4& proj) {
     projectionMatrix = proj;
 
-    // Assuming you're using a uniform to set the projection matrix in the shader
-    glUseProgram(balloonProgramID); // or any other program ID that needs the projection matrix
-    GLuint matrixID = glGetUniformLocation(balloonProgramID, "MVP"); // Change "MVP" if the uniform has another name
+   
+    glUseProgram(balloonProgramID); 
+    GLuint matrixID = glGetUniformLocation(balloonProgramID, "MVP"); 
     glUniformMatrix4fv(matrixID, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
 }
 
 void Renderer::render(const std::vector<Balloon>& balloons, const std::vector<Fragment>& fragments) {
-    // Use the same shader program for both balloons and fragments
+ 
     glUseProgram(balloonProgramID); // Use the shader program
     glBindVertexArray(balloonVAO);
     for (const Balloon& balloon : balloons) {
@@ -72,7 +72,7 @@ void Renderer::render(const std::vector<Balloon>& balloons, const std::vector<Fr
         glDrawArrays(GL_TRIANGLE_FAN, 0, vertices.size());
     }
     
-    // Render fragments - if any
+
     if (!fragments.empty()) {
         glBindVertexArray(fragmentVAO);
         std::vector<FragmentVertexData> fragmentVertices;
@@ -99,7 +99,7 @@ void Renderer::resize(int width, int height) {
     float aspectRatio = static_cast<float>(width) / static_cast<float>(height);
     glm::mat4 projection = glm::ortho(-aspectRatio, aspectRatio, -1.0f, 1.0f);
 
-    // Assuming that you only have one shader program for both balloons and fragments
+
     glUseProgram(balloonProgramID);
     GLuint matrixID = glGetUniformLocation(balloonProgramID, "MVP");
     glUniformMatrix4fv(matrixID, 1, GL_FALSE, glm::value_ptr(projection));
@@ -124,7 +124,7 @@ void Renderer::cleanup() {
         glDeleteBuffers(1, &fragmentVBO);
         fragmentVBO = 0;
     }
-    // Assuming that you only have one shader program for both balloons and fragments
+   
     if (balloonProgramID) {
         glDeleteProgram(balloonProgramID);
         balloonProgramID = 0;
@@ -134,22 +134,22 @@ std::vector<Vertex> Renderer::createBalloonVertices(const Balloon& balloon) {
     std::vector<Vertex> vertices;
     glm::vec3 position = balloon.getPosition(); // Balloon position
     glm::vec3 color = balloon.getColor(); // Balloon color
-    float alphaValue = 1.0f; // Assuming a fully opaque balloon
+    float alphaValue = 1.0f; 
     float radius = balloon.getSize(); // set the radius
     unsigned int num_segments = 20;  // decide the number of segments you want to divide your balloon into
 
-// Center vertex
+
     vertices.emplace_back(Vertex{position.x, position.y, color.r, color.g, color.b, alphaValue});
 
-// Perimeter vertices
-    for (unsigned int i = 0; i <= num_segments; ++i) { // Note: Starts at 0, loops to <= num_segments
+
+    for (unsigned int i = 0; i <= num_segments; ++i) { 
         float theta = 2.0f * glm::pi<float>() * float(i) / float(num_segments);
         float px = position.x + radius * cosf(theta); // compute x coordinate
         float py = position.y + radius * sinf(theta); // compute y coordinate
 
         vertices.emplace_back(Vertex{px, py, color.r, color.g, color.b, alphaValue});
     }
-    // The loop must go from 0 to <= num_segments to close the loop correctly.
+
 
     return vertices;
 }

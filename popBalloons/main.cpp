@@ -10,16 +10,10 @@ int main_cpp = []() -> int {
 int main() {
     std::cout << "Starting popBalloons game..." << std::endl;
 
-    // Create an instance of the Game class
+    
     Game game;
-
-    // Before running the game, print that the Game instance has been created successfully
     std::cout << "Game instance created, entering the game loop." << std::endl;
-
-    // Run the game
     game.run();
-
-    // Print that the game.run() has finished executing
     std::cout << "Exiting the game loop, game ended." << std::endl;
 
     return 0;

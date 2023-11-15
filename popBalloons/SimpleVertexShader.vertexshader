@@ -13,7 +13,7 @@ out float fragmentLifetime; // Pass lifetime to fragment shader for fade-out
 void main() {
     gl_Position = MVP * vec4(vertexPosition_modelspace, 1.0); 
     fragmentColor = vertexColor;
-    gl_PointSize = vertexSize; // Set the point size to control the size of the rendered point
+    gl_PointSize = vertexSize; 
     
     // Calculate remaining lifetime
     float remainingLife = vertexLifetime - time;

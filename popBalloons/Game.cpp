@@ -9,17 +9,14 @@ Game::Game()
     : score(0),
       lives(3),
       gen(std::random_device{}()),
-      window(nullptr), // Initialize other variables as needed
+      window(nullptr), 
       balloonSpeedMultiplier(1.0f),
       balloonSpawnInterval(2.0f), // Initial spawn interval of 2 seconds
       balloonSpawnSpeedIncrease(0.1f)
 {
     lastTime = glfwGetTime(); // Initialize lastTime to current time
     nextBalloonTime = lastTime + balloonSpawnInterval; // Set initial timer using lastTime
-    //... Other initialization code as needed ...
-
-    // Initialize the renderer here if needed
-    // Initialize the GLFW and other related systems in the `run` method
+    
 }
 
 Game::~Game() {
@@ -61,14 +58,14 @@ void Game::update(float deltaTime) {
     // Update the fragments
     for (auto it = fragments.begin(); it != fragments.end();) {
         it->position += it->velocity * deltaTime;  // Update position based on velocity
-        it->velocity += glm::vec3(0.0f, -9.8f * deltaTime, 0.0f); // Apply gravity, tune gravity to your game
+        it->velocity += glm::vec3(0.0f, -9.8f * deltaTime, 0.0f); 
 
         // Fade out the fragment over time or shrink it
         it->color.a = glm::max(it->color.a - (deltaTime / it->lifetime), 0.0f);
         // Reduce the fragment's lifetime
         it->lifetime -= deltaTime;
 
-        // Remove fragment if its lifetime is over (or if it's invisible)
+        
         if (it->lifetime <= 0.0f) {
             it = fragments.erase(it);
         } else {
@@ -111,28 +108,27 @@ void Game::popBalloon(int balloonIndex) {
     Balloon& balloon = balloons[balloonIndex];
     // Increase the balloon speed multiplier
     // Increase the balloon speed multiplier by a smaller amount
-    balloonSpeedMultiplier += 0.05f; // Further reduced increment
+    balloonSpeedMultiplier += 0.05f; 
 
     // Update the speed of all remaining balloons
     for (auto& balloon : balloons) {
         balloon.setSpeed(balloonSpeedMultiplier);
     }
 
-    // Increase the score based on the speed multiplier. Score increases as the balloons get faster
-    // You might want to tune the below score calculation as per your game's scoring rules
+    // Increase the score based on the speed multiplier
     score += static_cast<int>(100 * balloonSpeedMultiplier);
 
-    balloonSpawnInterval = std::max(balloonSpawnInterval - balloonSpawnSpeedIncrease, 0.5f); // Prevent it from going below 0.5 seconds
+    balloonSpawnInterval = std::max(balloonSpawnInterval - balloonSpawnSpeedIncrease, 0.5f); 
 
     // Immediate application of the new balloon spawn interval
     nextBalloonTime = glfwGetTime() + balloonSpawnInterval;
 
     // Generate the fragments for the explosion effect
-    int numFragments = 10; // This can be any number that you feel looks good
+    int numFragments = 10; 
     for (int i = 0; i < numFragments; ++i) {
         glm::vec3 position = balloon.getPosition(); // Start the fragment at the balloon's position
         glm::vec3 velocity = glm::ballRand(1.0f);   // Randomize velocity direction
-        glm::vec4 color = glm::vec4(balloon.getColor(), 1.0f); // Assuming Balloon::getColor() returns a glm::vec3 and specifying alpha
+        glm::vec4 color = glm::vec4(balloon.getColor(), 1.0f); 
         float size = 50.0f;      // Size of the fragment (use the appropriate size for your fragment)
         float lifetime = 1.0f;  // Set how long the fragment should be alive
 
@@ -151,24 +147,22 @@ void Game::createBalloon() {
 
     glm::vec3 position(dis(gen), -1.0f, 0.0f); // Start from the bottom of the screen
     glm::vec3 color(disColor(gen), disColor(gen), disColor(gen)); // Random color for each balloon
-    float size = 0.2f; // You might already have code to set this differently
+    float size = 0.2f; 
 
     // Create the balloon with an initial speed, then apply the speed multiplier
     Balloon newBalloon(position, size, color);
     newBalloon.setSpeed(balloonSpeedMultiplier); // Set balloon's speed multiplier
 
-    // Note: This snippet assumes you're giving all balloons a 
-    // base vertical velocity upwards, and the speed variable is
-    // merely a multiplier to adjust the velocity
-    newBalloon.setVelocity(glm::vec3(0.0f, 0.4f, 0.0f)); // Base 
+    
+    newBalloon.setVelocity(glm::vec3(0.0f, 0.4f, 0.0f)); 
 
     balloons.push_back(newBalloon);
 }
 
 void Game::cleanup() {
-    renderer.cleanup(); // Let Renderer handle its own cleanup
+    renderer.cleanup(); 
 
-    // Destroy the window if it was created
+    
     if (window) {
         glfwDestroyWindow(window);
         window = nullptr;
@@ -177,10 +171,6 @@ void Game::cleanup() {
     // Terminate GLFW
     glfwTerminate();
 }
-
-// Add other private member function implementations below
-
-
 
 bool Game::initializeGLFW() {
     // Initialize GLFW
@@ -196,45 +186,60 @@ bool Game::initializeGLFW() {
 }
 
 bool Game::initializeWindow() {
-    // Create a windowed mode window and its OpenGL context
+    // Get the primary monitor's resolution
     const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-    window = glfwCreateWindow(mode->width, mode->height, "Pop Balloons", glfwGetPrimaryMonitor(), nullptr);
+
+    // Initialize window size to the resolution of the monitor
+    int windowWidth = mode->width;
+    int windowHeight = mode->height;
+
+    // Set GLFW hints to create a borderless window
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+    glfwWindowHint(GLFW_DECORATED, GL_FALSE); // No title bar or borders
+    glfwWindowHint(GLFW_RED_BITS, mode->redBits);
+    glfwWindowHint(GLFW_GREEN_BITS, mode->greenBits);
+    glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
+    glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
+
+    // Create a windowed mode window with the dimensions of the monitor
+    window = glfwCreateWindow(windowWidth, windowHeight, "Pop Balloons", nullptr, nullptr);
     if (!window) {
         std::cerr << "Failed to create GLFW window\n";
         glfwTerminate();
         return false;
     }
 
+    // Position the window at (0, 0)
+    glfwSetWindowPos(window, 0, 0);
+
     // Make the window's context current
     glfwMakeContextCurrent(window);
 
     // Enable V-Sync
-    glfwSwapInterval(1); // Add this line here
+    glfwSwapInterval(1);
 
     // Set this object to be the user pointer
     glfwSetWindowUserPointer(window, this);
 
     // Set the frame buffer resize callback
     glfwSetFramebufferSizeCallback(window, [](GLFWwindow* win, int width, int height) {
-        // If the window is minimized, GLFW may set width and height to zero.
         if (width == 0 || height == 0) {
-            // This can happen if the window is minimized. Do not update sizes to zero.
             std::cout << "Resize was called with a zero width or height, ignoring." << std::endl;
             return;
         }
 
         Game* game = static_cast<Game*>(glfwGetWindowUserPointer(win));
         if (game) {
-            // Update framebuffer size stored in the Game class
             game->fbWidth = width;
             game->fbHeight = height;
-
-            // Call the Renderer class's resize method to update viewport and projection
             game->renderer.resize(width, height);
-
             std::cout << "Framebuffer size updated in game class: " << width << "x" << height << std::endl;
         }
     });
+
     // Get the framebuffer size
     glfwGetFramebufferSize(window, &fbWidth, &fbHeight);
     std::cout << "Framebuffer size after window creation: " << fbWidth << "x" << fbHeight << std::endl;
@@ -258,7 +263,7 @@ bool Game::initializeGLEW() {
 }
 
 void Game::setupScene() {
-    // Initialize renderer - make sure this is done post-GLEW initialization
+   
     renderer.initialize();
 
     // Set the initial projection matrix
@@ -302,9 +307,6 @@ void Game::renderScene() {
     // Delegate the rendering of the balloons to the Renderer class
     renderer.render(balloons, fragments);
 
-    // If there are other things to render (e.g., UI, background), do it here or delegate as well
-
-    // Swap buffers if using double buffering, handled in Game::run method
 }
 
 void Game::registerClickCallback() {
@@ -331,7 +333,7 @@ void Game::handleClick(float xpos, float ypos) {
 
     std::cout << "Converted to NDC at (" << ndcX << ", " << ndcY << ")" << std::endl;
     
-    float hitboxScale = 1.5f; // Increase this factor to enlarge the hitbox (e.g., 1.5 for 50% larger)
+    float hitboxScale = 1.5f; 
 
     for (size_t i = 0; i < balloons.size(); ++i) {
         Balloon& balloon = balloons[i];
@@ -358,6 +360,6 @@ void Game::handleClick(float xpos, float ypos) {
 void Game::endGame() {
     // Output final score or trigger game over screen/behavior
     std::cout << "Game Over! Your score: " << score << std::endl;
-    // Clean up and prepare to exit, set a flag or directly indicate window to close
+  
     glfwSetWindowShouldClose(window, GL_TRUE);
 }

@@ -5,11 +5,10 @@
 #include <glfw3.h>
 #include <glm/glm.hpp>
 #include <vector>
-#include "Balloon.h" // Ensure the Balloon class is defined and included
-#include "Vertex.h"  // Include Vertex structure
+#include "Balloon.h" 
+#include "Vertex.h"  
 #include "Fragment.h"
 
-// This struct should be defined in Renderer.h or another relevant header file where it's used.
 
 struct FragmentVertexData {
     glm::vec3 position; // Position in space

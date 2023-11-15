@@ -20,7 +20,7 @@ public:
     void cleanup();
     
 private:
-    Renderer renderer; // Assumes initialization in constructor or init method
+    Renderer renderer; 
     GLFWwindow* window;
     std::vector<Balloon> balloons;
     std::vector<Fragment> fragments;
@@ -38,12 +38,12 @@ private:
     void setupScene();
     void updateScene(float deltaTime);
     void renderScene();
-    void registerClickCallback(); // Add this line
-    void handleClick(float xpos, float ypos); // And this line
+    void registerClickCallback(); 
+    void handleClick(float xpos, float ypos); 
     void endGame();
-    float balloonSpeedMultiplier; // Add this to your Game class
-    float balloonSpawnInterval; // Time between balloon spawns
-    float balloonSpawnSpeedIncrease; // Amount to decrease spawn
+    float balloonSpeedMultiplier; 
+    float balloonSpawnInterval; 
+    float balloonSpawnSpeedIncrease; 
 };
 
 #endif // GAME_H

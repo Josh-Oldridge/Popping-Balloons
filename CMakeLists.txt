@@ -63,6 +63,7 @@ add_executable(popBalloons
 	popBalloons/Balloon.h
 	popBalloons/main.cpp
 	popBalloons/Vertex.h
+	popBalloons/Fragment.h
 	common/shader.cpp
 )
 target_link_libraries(popBalloons
