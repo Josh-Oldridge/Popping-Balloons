@@ -3,7 +3,7 @@
 
 
 Balloon::Balloon(const glm::vec3& position, float size, const glm::vec3& color)
-    : position(position), size(size), color(color), velocity(0.0f, 0.05f, 0.0f), speed(1.0f) {
+    : position(position), size(size), color(color), velocity(0.0f, 1.0f, 0.0f), speed(1.0f) {
    
 }
 

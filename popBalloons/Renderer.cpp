@@ -48,7 +48,13 @@ void Renderer::initialize() {
     glEnableVertexAttribArray(1); // for fragment colors
     glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(FragmentVertexData), (void*)(offsetof(FragmentVertexData, color)));
 
+    glEnableVertexAttribArray(2); // Enable the attribute location for size
+    glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, sizeof(FragmentVertexData), (void*)(offsetof(FragmentVertexData, size)));
+
     glBindVertexArray(0); // Unbind the VAO
+
+    
+    glEnable(GL_PROGRAM_POINT_SIZE);
 }
 
 void Renderer::setProjectionMatrix(const glm::mat4& proj) {
@@ -77,7 +83,7 @@ void Renderer::render(const std::vector<Balloon>& balloons, const std::vector<Fr
         glBindVertexArray(fragmentVAO);
         std::vector<FragmentVertexData> fragmentVertices;
         for (const Fragment& fragment : fragments) {
-            fragmentVertices.emplace_back(fragment.position, fragment.color);
+            fragmentVertices.emplace_back(FragmentVertexData{fragment.position, fragment.color, fragment.size});
         }
         
         glBindBuffer(GL_ARRAY_BUFFER, fragmentVBO);

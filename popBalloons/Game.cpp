@@ -11,7 +11,7 @@ Game::Game()
       gen(std::random_device{}()),
       window(nullptr), 
       balloonSpeedMultiplier(1.0f),
-      balloonSpawnInterval(2.0f), // Initial spawn interval of 2 seconds
+      balloonSpawnInterval(1.0f), // Initial spawn interval of 1 seconds
       balloonSpawnSpeedIncrease(0.1f)
 {
     lastTime = glfwGetTime(); // Initialize lastTime to current time
@@ -129,7 +129,7 @@ void Game::popBalloon(int balloonIndex) {
         glm::vec3 position = balloon.getPosition(); // Start the fragment at the balloon's position
         glm::vec3 velocity = glm::ballRand(1.0f);   // Randomize velocity direction
         glm::vec4 color = glm::vec4(balloon.getColor(), 1.0f); 
-        float size = 50.0f;      // Size of the fragment (use the appropriate size for your fragment)
+        float size = 5.0f;      // Size of the fragment (use the appropriate size for your fragment)
         float lifetime = 1.0f;  // Set how long the fragment should be alive
 
         Fragment frag(position, velocity, color, size, lifetime); // Using the Fragment constructor with parameters
@@ -154,7 +154,7 @@ void Game::createBalloon() {
     newBalloon.setSpeed(balloonSpeedMultiplier); // Set balloon's speed multiplier
 
     
-    newBalloon.setVelocity(glm::vec3(0.0f, 0.4f, 0.0f)); 
+    newBalloon.setVelocity(glm::vec3(0.0f, 1.0f, 0.0f)); 
 
     balloons.push_back(newBalloon);
 }

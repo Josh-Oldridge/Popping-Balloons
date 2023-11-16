@@ -13,9 +13,10 @@
 struct FragmentVertexData {
     glm::vec3 position; // Position in space
     glm::vec4 color;    // RGBA color with alpha
+    float size;         // Size of the fragment
 
-    FragmentVertexData(const glm::vec3& pos, const glm::vec4& col)
-        : position(pos), color(col) {}
+    FragmentVertexData(const glm::vec3& pos, const glm::vec4& col, float s)
+        : position(pos), color(col), size(s) {}
 };
 class Renderer {
 public:
